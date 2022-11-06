@@ -1,0 +1,43 @@
+---
+- name: Install Apache to slave server
+  hosts: webservers
+  become: yes
+  vars:
+    port: 80
+    email: olajugbagbekanyinsola@gmail.com
+    domain: 3.82.139.167
+    serverAlias: www.kanyexola.me
+    domainName: laravel
+  tasks:
+     - name: update client server
+       command: apt update
+     - name: Install Apache2 Package
+       package:
+          name: apache2
+          state: present
+          update_cache: yes
+     - name: Start Apache2
+       service:
+           name: apache2
+           state: restarted
+     - name: Add Firewalld Rule
+       firewalld:
+            port: 80/tcp
+            permanent: true
+            state: enabled
+     - name: Restart firewalld
+       service:
+            name: firewalld
+            state: restarted
+     - name: Copy laravel.conf into apache dir
+       template:
+             src: /home/server/laravel.conf
+             dest: /etc/apache2/sites-available/
+     - name: a2enmod laravel.conf
+       command: a2enmod rewrite
+     - name: a2ensite laravel.conf
+       command: a2ensite "{{ domainName }}".conf
+     - name: restart apache2
+       service:
+           name: apache2
+           state: restarted
